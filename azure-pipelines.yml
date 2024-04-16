@@ -50,6 +50,6 @@ steps:
     targetType: inline
     script: |
         $uri = "https://codescanning.azurewebsites.net/Backend/process-code"
-        $body = @{ "code": "navya" } | ConvertTo-Json
+        $body = @{ "code" = "navya" } | ConvertTo-Json
         $response = Invoke-RestMethod -Uri $uri -Method Post -Body $body -ContentType "application/json"
         echo $response
