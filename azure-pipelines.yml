@@ -44,3 +44,12 @@ steps:
         $uri = "https://codescanning.azurewebsites.net/Backend/get-code"
         $response = Invoke-RestMethod -Uri $uri -Method Get
         echo $response
+
+- task: PowerShell@2
+  inputs: 
+    targetType: inline
+    script: |
+        $uri = "https://codescanning.azurewebsites.net/Backend/process-code"
+        $body = @{ code: "navya" } | ConvertTo-Json
+        $response = Invoke-RestMethod -Uri $uri -Method Post -Body $body -ContentType "application/json"
+        echo $response
