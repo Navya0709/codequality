@@ -10,6 +10,7 @@ pool:
 steps:
 
 - task: DotNetCoreCLI@2
+  displayName: BUILD
   inputs:
     command: 'build'
     projects: '**/*.csproj'
@@ -19,6 +20,7 @@ steps:
 
     
 - task: DotNetCoreCLI@2
+  displayName: PUBLISH
   inputs:
     command: 'publish'
     publishWebProjects: false
@@ -38,6 +40,7 @@ steps:
     destinationFolder: '$(Build.ArtifactStagingDirectory)/extracted'  # Specify the folder where you want to extract the files
 
 - task: PowerShell@2
+  displayName: GET 
   inputs: 
     targetType: inline
     script: |
@@ -46,10 +49,21 @@ steps:
         echo $response
 
 - task: PowerShell@2
+  displayName: POST 1
   inputs: 
     targetType: inline
     script: |
         $uri = "https://codescanning.azurewebsites.net/Backend/process-code"
         $body = @{ "code" = "navya" } | ConvertTo-Json
+        $response = Invoke-RestMethod -Uri $uri -Method Post -Body $body -ContentType "application/json"
+        echo $response
+
+- task: PowerShell@2
+  displayName: POST 2
+  inputs: 
+    targetType: inline
+    script: |
+        $uri = "https://codescanning.azurewebsites.net/Backend/process-code"
+        $body = @{ "code" = "public class Program" } | ConvertTo-Json
         $response = Invoke-RestMethod -Uri $uri -Method Post -Body $body -ContentType "application/json"
         echo $response
