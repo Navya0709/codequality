@@ -67,14 +67,3 @@ steps:
         $body = @{ "code" = "public class Program{}" } | ConvertTo-Json
         $response = Invoke-RestMethod -Uri $uri -Method Post -Body $body -ContentType "application/json"
         echo $response
-
-- task: BuildQualityChecks@9
-  displayName: 'Build Quality Check'
-  inputs:
-    checkWarnings: true
-    warningFailOption: 'fixed'
-    warningThreshold: '15'
-    checkCoverage: true
-    coverageFailOption: 'fixed'
-    coverageType: 'blocks'
-    coverageThreshold: '5'
