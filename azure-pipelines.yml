@@ -41,6 +41,6 @@ steps:
   inputs: 
     targetType: inline
     script: |
-        $uri = "https://codescanning.azurewebsites.net/"
+        $uri = "https://codescanning.azurewebsites.net/Backend/get-code"
         $response = Invoke-RestMethod -Uri $uri -Method Get
         echo $response
