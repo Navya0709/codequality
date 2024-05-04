@@ -54,9 +54,11 @@ steps:
     targetType: inline
     script: |
         $uri = "https://codescanning.azurewebsites.net/Backend/process-code"
-        $body = @{ "code" = "navya" } | ConvertTo-Json
+        $fileContent = Get-Content -Path "C:\PBL\file1.txt" -Raw
+        $body = @{ "code" = $fileContent } | ConvertTo-Json
         $response = Invoke-RestMethod -Uri $uri -Method Post -Body $body -ContentType "application/json"
         echo $response
+
 
 - task: PowerShell@2
   displayName: POST 2
