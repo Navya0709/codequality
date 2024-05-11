@@ -55,7 +55,7 @@ steps:
     script: |
         $uri = "https://codescanning.azurewebsites.net/Backend/process-code"
         $fileContent = Get-Content -Path "C:\PBL\file1.txt" -Raw
-        $body = @{ "code" = $fileContent } | ConvertTo-Json
+        $body = @{ code = $fileContent } | ConvertTo-Json
         $response = Invoke-RestMethod -Uri $uri -Method Post -Body $body -ContentType "application/json"
         echo $response
 
@@ -68,4 +68,4 @@ steps:
         $uri = "https://codescanning.azurewebsites.net/Backend/process-code"
         $body = @{ "code" = "public class Program{}" } | ConvertTo-Json
         $response = Invoke-RestMethod -Uri $uri -Method Post -Body $body -ContentType "application/json"
-        echo $response
+        $response
