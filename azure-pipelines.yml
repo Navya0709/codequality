@@ -48,16 +48,22 @@ steps:
         $response = Invoke-RestMethod -Uri $uri -Method Get
         echo $response
 
-# - task: PowerShell@2
-#   displayName: POST 1
-#   inputs: 
-#     targetType: inline
-#     script: |
-#         $uri = "https://codescanning.azurewebsites.net/Backend/process-code"
-#         $fileContent = Get-Content -Path "C:\PBL\file1.txt" -Raw
-#         $body = @{ code = $fileContent } | ConvertTo-Json
-#         $response = Invoke-RestMethod -Uri $uri -Method Post -Body $body -ContentType "application/json"
-#         echo $response
+- task: PowerShell@2
+  displayName: POST 1
+  inputs: 
+    targetType: inline
+    script: |
+        $uri = "https://codescanning.azurewebsites.net/Backend/process-code"
+        $filePath = "C:\PBL\file1.txt"
+        try {
+            $fileContent = Get-Content -Path $filePath -Raw
+        } catch {
+            Write-Error "Failed to read the file content: $_"
+            exit 1  # Fail the task if the file read fails
+        }
+        $body = @{ code = $fileContent } | ConvertTo-Json
+        $response = Invoke-RestMethod -Uri $uri -Method Post -Body $body -ContentType "application/json"
+        echo $response
 
 
 - task: PowerShell@2
