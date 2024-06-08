@@ -48,22 +48,83 @@ steps:
         $response = Invoke-RestMethod -Uri $uri -Method Get
         echo $response
 
+
+- task: AzureCLI@2
+  displayName: 'Upload file to Azure Blob Storage and generate SAS token'
+  inputs:
+    azureSubscription: "68d46199-cc24-47bf-9616-9e960cc10d13"
+    scriptType: 'ps'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      # Set variables
+      $storageAccountName = "codescanning"
+      $containerName = "codecontainer"
+      $localFilePath = "C:\PBL\file1.txt"
+      $blobName = "file1.txt"
+      $resourceGroup = "codescanning_group"
+
+      # Login to Azure using service principal
+      az login --service-principal -u "$74c271da-9909-408b-9eda-f74d7762d722" -p "$45cd2fac-fa47-4a20-a0d7-4dd9b6756e7a" --tenant "$67a2c5c1-8acc-492d-8380-e59d63d06621"
+
+      # Upload the file to Azure Blob Storage
+      az storage blob upload --account-name $storageAccountName --container-name $containerName --name $blobName --file "$C:\PBL\file1.txt" --resource-group $resourceGroup
+      
+      if ($LASTEXITCODE -ne 0) {
+        Write-Error "File upload failed"
+        exit 1
+      }
+
+      # Generate SAS token
+      $sasToken = az storage blob generate-sas --account-name $storageAccountName --container-name $containerName --name $blobName --permissions r --expiry $(date -u -d "1 hour" '+%Y-%m-%dT%H:%MZ') --https-only --output tsv
+      $blobUrlWithSas = "https://$storageAccountName.blob.core.windows.net/$containerName/$blobName?$sasToken"
+      Write-Host "Blob URL with SAS token: $blobUrlWithSas"
+
+      # Save the blob URL with SAS token to a file
+      $blobUrlWithSas | Out-File -FilePath "$(System.DefaultWorkingDirectory)/blob_url_with_sas.txt"
+
 - task: PowerShell@2
-  displayName: POST 1
-  inputs: 
+  displayName: 'Download file and process it using SAS token'
+  inputs:
     targetType: inline
     script: |
-        $uri = "https://codescanning.azurewebsites.net/Backend/process-code"
-        $filePath = "C:\PBL\file1.txt"
+        # Read the blob URL with SAS token from the file
+        $blobUrlWithSas = Get-Content -Path "$(System.DefaultWorkingDirectory)/blob_url_with_sas.txt" -Raw
+
+        # Download the file using the SAS token URL
         try {
-            $fileContent = Get-Content -Path $filePath -Raw
+            Invoke-WebRequest -Uri $blobUrlWithSas -OutFile "$(System.DefaultWorkingDirectory)/file1.txt"
+            Write-Host "File downloaded successfully"
+        } catch {
+            Write-Error "Failed to download the file: $_"
+            exit 1  # Fail the task if the file download fails
+        }
+
+        # Define the URI for the POST request
+        $uri = "https://codescanning.azurewebsites.net/Backend/process-code"
+
+        # Get the file content from the downloaded file
+        try {
+            $fileContent = Get-Content -Path "$(System.DefaultWorkingDirectory)/file1.txt" -Raw
         } catch {
             Write-Error "Failed to read the file content: $_"
             exit 1  # Fail the task if the file read fails
         }
+
+        # Prepare the JSON payload
         $body = @{ code = $fileContent } | ConvertTo-Json
-        $response = Invoke-RestMethod -Uri $uri -Method Post -Body $body -ContentType "application/json"
-        echo $response
+
+        # Send the POST request with the JSON payload
+        try {
+            $response = Invoke-RestMethod -Uri $uri -Method Post -ContentType 'application/json' -Body $body
+
+            # Output the response from the API
+            echo $response
+        } catch {
+            # Handle any exceptions that occur during the API request
+            Write-Error "Failed to send POST request: $_"
+            exit 1  # Fail the task if the request fails
+        }
+
 
 
 - task: PowerShell@2
