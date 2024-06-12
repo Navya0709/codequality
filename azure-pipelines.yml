@@ -142,7 +142,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $filePath = "**/*.yml"
+      $filePath = "/*.yml"
       if (Test-Path $filePath) {
         $fileContent = Get-Content -Path $filePath -Raw
         Write-Output "File content:"
