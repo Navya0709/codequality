@@ -136,3 +136,17 @@ steps:
         $body = @{ "code" = "public class Program{}" } | ConvertTo-Json
         $response = Invoke-RestMethod -Uri $uri -Method Post -Body $body -ContentType "application/json"
         $response
+
+- task: PowerShell@2
+  displayName: 'Read File from Repository'
+  inputs:
+    targetType: 'inline'
+    script: |
+      $filePath = "**/*.txt"
+      if (Test-Path $filePath) {
+        $fileContent = Get-Content -Path $filePath -Raw
+        Write-Output "File content:"
+        Write-Output $fileContent
+      } else {
+        Write-Output "File not found: $filePath"
+      }
