@@ -142,11 +142,14 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $filePath = "**/*.txt"
-      if (Test-Path $filePath) {
-        $fileContent = Get-Content -Path $filePath -Raw
-        Write-Output "File content:"
-        Write-Output $fileContent
+      $filePath = "$(Build.SourcesDirectory)/**/*.txt"
+      $files = Get-ChildItem -Path $filepath -File
+      if ($files) {
+        foreach ($file in $files) {
+          $fileContent = Get-Content -Path $file.FullName -Raw
+          Write-Output "File content of $($file.FullName):"
+          Write-Output $fileContent
+        }
       } else {
-        Write-Output "File not found: $filePath"
+        Write-Output "No files found matching pattern: $filePattern"
       }
